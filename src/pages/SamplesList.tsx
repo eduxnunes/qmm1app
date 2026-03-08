@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { getSamples, deleteSample } from '@/lib/store';
 import { getSettings } from '@/lib/settings';
 import { getLinks, resolveLink } from '@/lib/links';
