@@ -371,8 +371,9 @@ export default function Dashboard() {
                 <XAxis dataKey="name" tick={{ fontSize: 12, fill: 'hsl(var(--muted-foreground))' }} />
                 <YAxis tick={{ fontSize: 12, fill: 'hsl(var(--muted-foreground))' }} />
                 <Tooltip contentStyle={{ background: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', borderRadius: '8px', fontSize: '13px' }} />
-                <Bar dataKey="ok" name="OK" fill="hsl(var(--success))" radius={[4, 4, 0, 0]} stackId="a" />
-                <Bar dataKey="nok" name="NOK" fill="hsl(var(--destructive))" radius={[4, 4, 0, 0]} stackId="a" />
+                <Bar dataKey="ok" name="OK" fill="hsl(var(--success))" radius={[0, 0, 0, 0]} stackId="a" />
+                <Bar dataKey="nok" name="NOK" fill="hsl(var(--destructive))" radius={[0, 0, 0, 0]} stackId="a" />
+                <Bar dataKey="underAnalysis" name="Under Analysis" fill="hsl(var(--warning))" radius={[4, 4, 0, 0]} stackId="a" />
                 <Legend wrapperStyle={{ fontSize: '12px' }} />
               </BarChart>
             </ResponsiveContainer>
