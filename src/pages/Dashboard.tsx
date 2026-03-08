@@ -205,7 +205,7 @@ export default function Dashboard() {
       </div>
 
       {/* Decision Time KPI */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <div className="card-elevated">
           <div className="flex items-center gap-2 mb-2">
             <Timer className="w-4 h-4 text-primary" />
@@ -228,9 +228,19 @@ export default function Dashboard() {
         <div className="card-elevated">
           <div className="flex items-center gap-2 mb-2">
             <Clock className="w-4 h-4 text-warning" />
+            <p className="text-sm text-muted-foreground font-medium">Under Analysis</p>
+          </div>
+          <span className="text-4xl font-display font-bold text-warning">{underAnalysisCount}</span>
+          <p className="text-xs text-muted-foreground mt-2">
+            samples currently being analyzed
+          </p>
+        </div>
+        <div className="card-elevated">
+          <div className="flex items-center gap-2 mb-2">
+            <Clock className="w-4 h-4 text-muted-foreground" />
             <p className="text-sm text-muted-foreground font-medium">Awaiting Decision</p>
           </div>
-          <span className="text-4xl font-display font-bold text-warning">{awaitingDecision.length}</span>
+          <span className="text-4xl font-display font-bold text-muted-foreground">{awaitingDecision.length}</span>
           <p className="text-xs text-muted-foreground mt-2">
             samples without a decision date
           </p>
