@@ -6,12 +6,16 @@ import {
   disconnectConfigFile, autoSaveConfig, restoreConfigHandle, loadConfigFromFile,
   isFileSystemSupported as isConfigFSSupported,
 } from '@/lib/configFile';
+import {
+  pickRootFolder, getRootFolderName, isFolderConnected,
+  disconnectRootFolder, restoreRootFolder, isFSSupported as isFolderFSSupported,
+} from '@/lib/folderManager';
 import { saveTargets } from '@/lib/store';
 import { saveLinks } from '@/lib/links';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
-import { Settings as SettingsIcon, Plus, Trash2, Save, FileSpreadsheet, HardDrive, Unplug, Download, RefreshCw, FileText } from 'lucide-react';
+import { Settings as SettingsIcon, Plus, Trash2, Save, FileSpreadsheet, HardDrive, Unplug, Download, RefreshCw, FileText, FolderOpen } from 'lucide-react';
 
 type DropdownKey = 'auditTypes' | 'sections' | 'valueStreams' | 'statusOptions';
 
