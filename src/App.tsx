@@ -2,7 +2,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import AppLayout from "@/components/AppLayout";
 import Dashboard from "@/pages/Dashboard";
@@ -13,23 +13,30 @@ import Settings from "@/pages/Settings";
 import UserManagement from "@/pages/UserManagement";
 import Login from "@/pages/Login";
 import NotFound from "./pages/NotFound";
+import { PagePermission } from "@/lib/auth";
 
 const queryClient = new QueryClient();
 
+function ProtectedRoute({ permission, children }: { permission: PagePermission; children: React.ReactNode }) {
+  const { hasPermission } = useAuth();
+  if (!hasPermission(permission)) return <Navigate to="/" replace />;
+  return <>{children}</>;
+}
+
 function AppRoutes() {
-  const { user, isAdmin } = useAuth();
+  const { user } = useAuth();
 
   if (!user) return <Login />;
 
   return (
     <AppLayout>
       <Routes>
-        <Route path="/" element={<Dashboard />} />
-        <Route path="/new-sample" element={<NewSample />} />
-        <Route path="/samples" element={<SamplesList />} />
-        <Route path="/targets" element={<Targets />} />
-        {isAdmin && <Route path="/settings" element={<Settings />} />}
-        {isAdmin && <Route path="/users" element={<UserManagement />} />}
+        <Route path="/" element={<ProtectedRoute permission="dashboard"><Dashboard /></ProtectedRoute>} />
+        <Route path="/new-sample" element={<ProtectedRoute permission="new_sample"><NewSample /></ProtectedRoute>} />
+        <Route path="/samples" element={<ProtectedRoute permission="samples"><SamplesList /></ProtectedRoute>} />
+        <Route path="/targets" element={<ProtectedRoute permission="targets"><Targets /></ProtectedRoute>} />
+        <Route path="/settings" element={<ProtectedRoute permission="settings"><Settings /></ProtectedRoute>} />
+        <Route path="/users" element={<ProtectedRoute permission="users"><UserManagement /></ProtectedRoute>} />
         <Route path="*" element={<NotFound />} />
       </Routes>
     </AppLayout>
