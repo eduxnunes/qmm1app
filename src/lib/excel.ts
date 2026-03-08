@@ -9,9 +9,70 @@ import { getUsers, saveUsers } from './auth';
 let fileHandle: FileSystemFileHandle | null = null;
 let autoSaveEnabled = false;
 
+const IDB_NAME = 'isir_excel_db';
+const IDB_STORE = 'fileHandles';
+const IDB_KEY = 'excelHandle';
+
+/** IndexedDB helpers to persist the file handle across sessions */
+function openIDB(): Promise<IDBDatabase> {
+  return new Promise((resolve, reject) => {
+    const req = indexedDB.open(IDB_NAME, 1);
+    req.onupgradeneeded = () => { req.result.createObjectStore(IDB_STORE); };
+    req.onsuccess = () => resolve(req.result);
+    req.onerror = () => reject(req.error);
+  });
+}
+
+async function saveHandleToIDB(handle: FileSystemFileHandle): Promise<void> {
+  const db = await openIDB();
+  const tx = db.transaction(IDB_STORE, 'readwrite');
+  tx.objectStore(IDB_STORE).put(handle, IDB_KEY);
+  return new Promise((resolve, reject) => {
+    tx.oncomplete = () => resolve();
+    tx.onerror = () => reject(tx.error);
+  });
+}
+
+async function getHandleFromIDB(): Promise<FileSystemFileHandle | null> {
+  const db = await openIDB();
+  const tx = db.transaction(IDB_STORE, 'readonly');
+  const req = tx.objectStore(IDB_STORE).get(IDB_KEY);
+  return new Promise((resolve, reject) => {
+    req.onsuccess = () => resolve(req.result || null);
+    req.onerror = () => reject(req.error);
+  });
+}
+
+async function removeHandleFromIDB(): Promise<void> {
+  const db = await openIDB();
+  const tx = db.transaction(IDB_STORE, 'readwrite');
+  tx.objectStore(IDB_STORE).delete(IDB_KEY);
+  return new Promise((resolve) => { tx.oncomplete = () => resolve(); });
+}
+
 /** Check if File System Access API is supported */
 export function isFileSystemSupported(): boolean {
   return 'showOpenFilePicker' in window;
+}
+
+/** Try to restore the previously linked file handle from IndexedDB */
+export async function restoreFileHandle(): Promise<boolean> {
+  if (!isFileSystemSupported()) return false;
+  try {
+    const handle = await getHandleFromIDB();
+    if (!handle) return false;
+    // Request permission (may show a one-click prompt)
+    const perm = await (handle as any).requestPermission({ mode: 'readwrite' });
+    if (perm === 'granted') {
+      fileHandle = handle;
+      autoSaveEnabled = true;
+      localStorage.setItem('isir_excel_filename', handle.name);
+      return true;
+    }
+    return false;
+  } catch {
+    return false;
+  }
 }
 
 /** Pick an Excel file and store the handle for future writes */
@@ -24,8 +85,8 @@ export async function pickExcelFile(): Promise<{ handle: FileSystemFileHandle; n
     });
     fileHandle = handle;
     autoSaveEnabled = true;
-    // Store the file name for display
     localStorage.setItem('isir_excel_filename', handle.name);
+    await saveHandleToIDB(handle);
     return { handle, name: handle.name };
   } catch {
     return null; // User cancelled
@@ -43,6 +104,7 @@ export async function pickSaveLocation(): Promise<{ handle: FileSystemFileHandle
     fileHandle = handle;
     autoSaveEnabled = true;
     localStorage.setItem('isir_excel_filename', handle.name);
+    await saveHandleToIDB(handle);
     return { handle, name: handle.name };
   } catch {
     return null;
@@ -61,6 +123,7 @@ export function disconnectFile(): void {
   fileHandle = null;
   autoSaveEnabled = false;
   localStorage.removeItem('isir_excel_filename');
+  removeHandleFromIDB();
 }
 
 /** Write the current data directly to the linked file handle */

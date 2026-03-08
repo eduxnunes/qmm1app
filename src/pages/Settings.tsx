@@ -1,6 +1,6 @@
 import { useState, useRef, useCallback, useEffect } from 'react';
 import { getSettings, saveSettings, AppSettings } from '@/lib/settings';
-import { pickExcelFile, pickSaveLocation, getLinkedFileName, isAutoSaveActive, disconnectFile, autoSaveToExcel, importFromLinkedFile, isFileSystemSupported, exportToExcel } from '@/lib/excel';
+import { pickExcelFile, pickSaveLocation, getLinkedFileName, isAutoSaveActive, disconnectFile, autoSaveToExcel, importFromLinkedFile, isFileSystemSupported, exportToExcel, restoreFileHandle } from '@/lib/excel';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
