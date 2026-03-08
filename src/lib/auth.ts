@@ -57,6 +57,7 @@ export function login(username: string, password: string): AppUser | null {
   if (user) {
     const session: SessionUser = { username: user.username, role: user.role, fullName: user.fullName, permissions: user.role === 'admin' ? ADMIN_PERMISSIONS : user.permissions };
     localStorage.setItem(SESSION_KEY, JSON.stringify(session));
+    sessionStorage.setItem('isir_session_active', 'true');
     return user;
   }
   return null;

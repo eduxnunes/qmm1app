@@ -396,6 +396,7 @@ export default function Dashboard() {
                   <Bar dataKey="total" name="Total" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
                   <Bar dataKey="ok" name="OK" fill="hsl(var(--success))" radius={[4, 4, 0, 0]} />
                   <Bar dataKey="nok" name="NOK" fill="hsl(var(--destructive))" radius={[4, 4, 0, 0]} />
+                  <Bar dataKey="underAnalysis" name="Under Analysis" fill="hsl(var(--warning))" radius={[4, 4, 0, 0]} />
                   <Legend wrapperStyle={{ fontSize: '12px' }} />
                 </BarChart>
               </ResponsiveContainer>
