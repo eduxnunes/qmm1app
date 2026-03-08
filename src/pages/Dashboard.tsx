@@ -17,6 +17,32 @@ export default function Dashboard() {
   const completionRate = totalSamples > 0 ? Math.round(((okCount + nokCount) / totalSamples) * 100) : 0;
   const approvalRate = (okCount + nokCount) > 0 ? Math.round((okCount / (okCount + nokCount)) * 100) : 0;
 
+  // Decision time KPI: days between sample date and decisionDate
+  const decisionTimeStats = useMemo(() => {
+    const times: number[] = [];
+    samples.forEach((s) => {
+      if (s.date && s.decisionDate) {
+        const start = new Date(s.date).getTime();
+        const end = new Date(s.decisionDate).getTime();
+        if (!isNaN(start) && !isNaN(end) && end >= start) {
+          times.push(Math.round((end - start) / (1000 * 60 * 60 * 24)));
+        }
+      }
+    });
+    if (times.length === 0) return { avg: null, min: null, max: null, count: 0 };
+    const avg = Math.round(times.reduce((a, b) => a + b, 0) / times.length);
+    return { avg, min: Math.min(...times), max: Math.max(...times), count: times.length };
+  }, [samples]);
+
+  // Samples still awaiting decision (have date but no decisionDate, and not cancelled)
+  const awaitingDecision = samples.filter(
+    (s) => s.date && !s.decisionDate && s.status !== 'Cancelled'
+  );
+  const overdueCount = awaitingDecision.filter((s) => {
+    if (!s.dueDate) return false;
+    return new Date(s.dueDate).getTime() < Date.now();
+  }).length;
+
   const stats = [
     { label: 'Total Samples', value: totalSamples, icon: ClipboardCheck, color: 'text-primary' },
     { label: 'Approved (OK)', value: okCount, icon: CheckCircle2, color: 'text-success' },
