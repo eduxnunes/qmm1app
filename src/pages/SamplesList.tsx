@@ -11,6 +11,7 @@ import { Search, Trash2, Filter, ExternalLink } from 'lucide-react';
 import { toast } from 'sonner';
 
 export default function SamplesList() {
+  const navigate = useNavigate();
   const settings = getSettings();
   const links = useMemo(() => getLinks(), []);
   const [refresh, setRefresh] = useState(0);
