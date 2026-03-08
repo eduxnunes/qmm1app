@@ -5,16 +5,102 @@ import { AppUser, UserRole, PagePermission, DEFAULT_USER_PERMISSIONS, ADMIN_PERM
 import { getSamples, saveSample, getTargets, saveTargets } from './store';
 import { getUsers, saveUsers } from './auth';
 
-/** Parse date string in DD/MM/YYYY or YYYY-MM-DD format */
+// ── File System Access API handle ──────────────────────────────
+let fileHandle: FileSystemFileHandle | null = null;
+let autoSaveEnabled = false;
+
+/** Check if File System Access API is supported */
+export function isFileSystemSupported(): boolean {
+  return 'showOpenFilePicker' in window;
+}
+
+/** Pick an Excel file and store the handle for future writes */
+export async function pickExcelFile(): Promise<{ handle: FileSystemFileHandle; name: string } | null> {
+  if (!isFileSystemSupported()) return null;
+  try {
+    const [handle] = await (window as any).showOpenFilePicker({
+      types: [{ description: 'Excel Files', accept: { 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': ['.xlsx'] } }],
+      multiple: false,
+    });
+    fileHandle = handle;
+    autoSaveEnabled = true;
+    // Store the file name for display
+    localStorage.setItem('isir_excel_filename', handle.name);
+    return { handle, name: handle.name };
+  } catch {
+    return null; // User cancelled
+  }
+}
+
+/** Pick a NEW file location (Save As) */
+export async function pickSaveLocation(): Promise<{ handle: FileSystemFileHandle; name: string } | null> {
+  if (!isFileSystemSupported()) return null;
+  try {
+    const handle = await (window as any).showSaveFilePicker({
+      suggestedName: `ISIR_Database_${new Date().toISOString().split('T')[0]}.xlsx`,
+      types: [{ description: 'Excel Files', accept: { 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': ['.xlsx'] } }],
+    });
+    fileHandle = handle;
+    autoSaveEnabled = true;
+    localStorage.setItem('isir_excel_filename', handle.name);
+    return { handle, name: handle.name };
+  } catch {
+    return null;
+  }
+}
+
+export function getLinkedFileName(): string | null {
+  return localStorage.getItem('isir_excel_filename');
+}
+
+export function isAutoSaveActive(): boolean {
+  return autoSaveEnabled && fileHandle !== null;
+}
+
+export function disconnectFile(): void {
+  fileHandle = null;
+  autoSaveEnabled = false;
+  localStorage.removeItem('isir_excel_filename');
+}
+
+/** Write the current data directly to the linked file handle */
+async function writeToFileHandle(): Promise<void> {
+  if (!fileHandle) return;
+  const wb = buildWorkbook();
+  const wbout = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
+  const writable = await (fileHandle as any).createWritable();
+  await writable.write(new Uint8Array(wbout));
+  await writable.close();
+}
+
+/** Auto-save to the linked Excel file (call after any data change) */
+export async function autoSaveToExcel(): Promise<boolean> {
+  if (!autoSaveEnabled || !fileHandle) return false;
+  try {
+    await writeToFileHandle();
+    return true;
+  } catch (err) {
+    console.error('Auto-save failed:', err);
+    // Permission may have been revoked
+    return false;
+  }
+}
+
+/** Import from the linked file handle */
+export async function importFromLinkedFile(): Promise<ImportResult | null> {
+  if (!fileHandle) return null;
+  const file = await fileHandle.getFile();
+  return importFromExcel(file);
+}
+
+// ── Parse / Build helpers ──────────────────────────────────────
+
 function parseDate(val: unknown): string {
   if (!val) return '';
   const s = String(val).trim();
-  // Already YYYY-MM-DD
   if (/^\d{4}-\d{2}-\d{2}$/.test(s)) return s;
-  // DD/MM/YYYY
   const m = s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
   if (m) return `${m[3]}-${m[2].padStart(2, '0')}-${m[1].padStart(2, '0')}`;
-  // Excel serial number
   if (!isNaN(Number(s))) {
     const date = XLSX.SSF.parse_date_code(Number(s));
     if (date) return `${date.y}-${String(date.m).padStart(2, '0')}-${String(date.d).padStart(2, '0')}`;
@@ -38,7 +124,7 @@ export function importFromExcel(file: File): Promise<ImportResult> {
         const wb = XLSX.read(data, { type: 'array' });
         const result: ImportResult = { samples: 0, targets: 0, users: 0, errors: [] };
 
-        // Page 2: Samples (main data)
+        // Page 2: Samples
         const samplesSheet = wb.Sheets[wb.SheetNames[1]];
         if (samplesSheet) {
           const rows = XLSX.utils.sheet_to_json<Record<string, unknown>>(samplesSheet, { defval: '' });
@@ -95,12 +181,10 @@ export function importFromExcel(file: File): Promise<ImportResult> {
         const usersSheet = wb.Sheets[wb.SheetNames[3]];
         if (usersSheet) {
           const rows = XLSX.utils.sheet_to_json<Record<string, unknown>>(usersSheet, { defval: '', header: ['username', 'passwordHash', 'role', 'permissions'] });
-          // Skip header row
           const existingUsers = getUsers();
           rows.slice(1).forEach((row) => {
             const username = String(row['username'] || '').trim();
             if (!username) return;
-            // Check if user already exists
             if (existingUsers.some((u) => u.username === username)) return;
             const role = String(row['role'] || 'user') as UserRole;
             const permsStr = String(row['permissions'] || '');
@@ -111,10 +195,9 @@ export function importFromExcel(file: File): Promise<ImportResult> {
             const permissions: PagePermission[] = role === 'admin'
               ? ADMIN_PERMISSIONS
               : permsStr.split(',').map((p) => permMap[p.trim()]).filter(Boolean) as PagePermission[];
-
             existingUsers.push({
               username,
-              password: username.toLowerCase(), // Default password = username (since we can't use bcrypt hashes)
+              password: username.toLowerCase(),
               role: role === 'admin' ? 'admin' : 'user',
               fullName: username,
               permissions: permissions.length > 0 ? permissions : DEFAULT_USER_PERMISSIONS,
@@ -134,18 +217,16 @@ export function importFromExcel(file: File): Promise<ImportResult> {
   });
 }
 
-export function exportToExcel(): void {
+function buildWorkbook(): XLSX.WorkBook {
   const wb = XLSX.utils.book_new();
 
-  // Page 1: Config (Audit Types, Sections, etc.) — from settings
+  // Page 1: Config
   const settingsData = localStorage.getItem('isir_settings');
   if (settingsData) {
     const settings = JSON.parse(settingsData);
     const maxLen = Math.max(
-      settings.auditTypes?.length || 0,
-      settings.sections?.length || 0,
-      (settings.statusOptions?.length || 0),
-      (settings.valueStreams?.length || 0),
+      settings.auditTypes?.length || 0, settings.sections?.length || 0,
+      settings.statusOptions?.length || 0, settings.valueStreams?.length || 0,
     );
     const configRows: Record<string, string>[] = [];
     for (let i = 0; i < maxLen; i++) {
@@ -163,37 +244,20 @@ export function exportToExcel(): void {
   // Page 2: Samples
   const samples = getSamples();
   const sampleRows = samples.map((s) => ({
-    'ID': s.id,
-    'Day': s.day,
-    'Month': s.month,
-    'Year': s.year,
-    'Audit Type': s.auditType,
-    'Section': s.section,
-    'Value Stream': s.valueStream,
-    'TTNR': s.ttnr,
-    'Description': s.description,
-    'Comments': s.comments,
-    'OK/NOK': s.status,
-    'Due Date': s.dueDate,
-    'Decision Date': s.decisionDate,
-    'MDGM': s.mdgm,
-    'ECR': s.ecr,
-    'SoftExpert': s.softExpert,
-    'Problem Solving': s.problemSolving,
-    'Date': s.date,
-    'User': s.user,
+    'ID': s.id, 'Day': s.day, 'Month': s.month, 'Year': s.year,
+    'Audit Type': s.auditType, 'Section': s.section, 'Value Stream': s.valueStream,
+    'TTNR': s.ttnr, 'Description': s.description, 'Comments': s.comments,
+    'OK/NOK': s.status, 'Due Date': s.dueDate, 'Decision Date': s.decisionDate,
+    'MDGM': s.mdgm, 'ECR': s.ecr, 'SoftExpert': s.softExpert,
+    'Problem Solving': s.problemSolving, 'Date': s.date, 'User': s.user,
   }));
-  const ws2 = XLSX.utils.json_to_sheet(sampleRows);
-  XLSX.utils.book_append_sheet(wb, ws2, 'Samples');
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(sampleRows), 'Samples');
 
   // Page 3: Targets
   const targets = getTargets();
-  const targetRows = targets.map((t) => ({
-    'Audit Type': t.auditType,
-    'Target': t.target,
-  }));
-  const ws3 = XLSX.utils.json_to_sheet(targetRows);
-  XLSX.utils.book_append_sheet(wb, ws3, 'Targets');
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(targets.map((t) => ({
+    'Audit Type': t.auditType, 'Target': t.target,
+  }))), 'Targets');
 
   // Page 4: Users
   const users = getUsers();
@@ -201,16 +265,16 @@ export function exportToExcel(): void {
     new_sample: 'new_sample', samples: 'edit_sample', settings: 'settings',
     dashboard: 'graphics', users: 'user_mgmt', targets: 'edit_target', links: 'links',
   };
-  const userRows = users.map((u) => ({
-    'Username': u.username,
-    'Password_Hash': '(stored locally)',
-    'Role': u.role,
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(users.map((u) => ({
+    'Username': u.username, 'Password_Hash': '(local)', 'Role': u.role,
     'Permissions': u.permissions.map((p) => permMap[p] || p).join(','),
-  }));
-  const ws4 = XLSX.utils.json_to_sheet(userRows);
-  XLSX.utils.book_append_sheet(wb, ws4, 'Users');
+  }))), 'Users');
 
-  // Download
+  return wb;
+}
+
+export function exportToExcel(): void {
+  const wb = buildWorkbook();
   const fileName = `ISIR_Database_${new Date().toISOString().split('T')[0]}.xlsx`;
   XLSX.writeFile(wb, fileName);
 }
