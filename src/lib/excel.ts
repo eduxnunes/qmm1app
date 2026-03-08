@@ -1,4 +1,4 @@
-import * as XLSX from 'xlsx';
+import * as XLSX from '@e965/xlsx';
 import { AuditSample } from './types';
 import { AuditTarget } from './types';
 import { AppUser, UserRole, PagePermission, DEFAULT_USER_PERMISSIONS, ADMIN_PERMISSIONS } from './auth';
