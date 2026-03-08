@@ -1,6 +1,7 @@
 import { useState, useMemo } from 'react';
 import { getTargets, saveTargets } from '@/lib/store';
-import { AuditTarget, AUDIT_TYPES } from '@/lib/types';
+import { AuditTarget } from '@/lib/types';
+import { getSettings } from '@/lib/settings';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
