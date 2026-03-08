@@ -1,7 +1,9 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { saveSample, getNextId } from '@/lib/store';
-import { AUDIT_TYPES, SECTIONS, VALUE_STREAMS, STATUS_OPTIONS, AuditSample } from '@/lib/types';
+import { AuditSample } from '@/lib/types';
+import { getSettings } from '@/lib/settings';
+import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -11,6 +13,8 @@ import { Save, RotateCcw } from 'lucide-react';
 
 export default function NewSample() {
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const settings = getSettings();
   const today = new Date();
   const todayStr = today.toISOString().split('T')[0];
 
@@ -32,7 +36,7 @@ export default function NewSample() {
     ecr: '',
     softExpert: '',
     problemSolving: '',
-    user: 'admin',
+    user: user?.username || 'admin',
   });
 
   const update = (field: string, value: string | number) => {
@@ -65,7 +69,7 @@ export default function NewSample() {
       softExpert: form.softExpert || '',
       problemSolving: form.problemSolving || '',
       date: form.date || todayStr,
-      user: form.user || 'admin',
+      user: user?.username || 'admin',
     };
     saveSample(sample);
     toast.success(`Sample ${id} created successfully`);
@@ -74,24 +78,10 @@ export default function NewSample() {
 
   const handleReset = () => {
     setForm({
-      year: today.getFullYear(),
-      month: today.getMonth() + 1,
-      day: today.getDate(),
-      date: todayStr,
-      dueDate: todayStr,
-      auditType: '',
-      section: '',
-      valueStream: '',
-      ttnr: '',
-      description: '',
-      comments: '',
-      status: '',
-      decisionDate: '',
-      mdgm: '',
-      ecr: '',
-      softExpert: '',
-      problemSolving: '',
-      user: 'admin',
+      year: today.getFullYear(), month: today.getMonth() + 1, day: today.getDate(),
+      date: todayStr, dueDate: todayStr, auditType: '', section: '', valueStream: '',
+      ttnr: '', description: '', comments: '', status: '', decisionDate: '',
+      mdgm: '', ecr: '', softExpert: '', problemSolving: '', user: user?.username || 'admin',
     });
   };
 
@@ -103,7 +93,6 @@ export default function NewSample() {
       </div>
 
       <form onSubmit={handleSubmit} className="card-elevated space-y-6">
-        {/* Row 1: Date & Type */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div className="space-y-2">
             <Label className="font-display text-xs uppercase tracking-wider">Date</Label>
@@ -120,7 +109,7 @@ export default function NewSample() {
             <Select value={form.auditType} onValueChange={(v) => update('auditType', v)}>
               <SelectTrigger><SelectValue placeholder="Select type" /></SelectTrigger>
               <SelectContent>
-                {AUDIT_TYPES.map((t) => <SelectItem key={t} value={t}>{t}</SelectItem>)}
+                {settings.auditTypes.map((t) => <SelectItem key={t} value={t}>{t}</SelectItem>)}
               </SelectContent>
             </Select>
           </div>
@@ -129,20 +118,19 @@ export default function NewSample() {
             <Select value={form.section} onValueChange={(v) => update('section', v)}>
               <SelectTrigger><SelectValue placeholder="Select section" /></SelectTrigger>
               <SelectContent>
-                {SECTIONS.map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}
+                {settings.sections.map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}
               </SelectContent>
             </Select>
           </div>
         </div>
 
-        {/* Row 2: Value Stream, TTNR, Description */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div className="space-y-2">
             <Label className="font-display text-xs uppercase tracking-wider">Value Stream</Label>
             <Select value={form.valueStream} onValueChange={(v) => update('valueStream', v)}>
               <SelectTrigger><SelectValue placeholder="Select stream" /></SelectTrigger>
               <SelectContent>
-                {VALUE_STREAMS.map((vs) => <SelectItem key={vs} value={vs}>{vs}</SelectItem>)}
+                {settings.valueStreams.map((vs) => <SelectItem key={vs} value={vs}>{vs}</SelectItem>)}
               </SelectContent>
             </Select>
           </div>
@@ -156,14 +144,13 @@ export default function NewSample() {
           </div>
         </div>
 
-        {/* Row 3: Status fields */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           <div className="space-y-2">
             <Label className="font-display text-xs uppercase tracking-wider">Status</Label>
             <Select value={form.status} onValueChange={(v) => update('status', v)}>
               <SelectTrigger><SelectValue placeholder="Select status" /></SelectTrigger>
               <SelectContent>
-                {STATUS_OPTIONS.map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}
+                {settings.statusOptions.map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}
               </SelectContent>
             </Select>
           </div>
@@ -181,7 +168,6 @@ export default function NewSample() {
           </div>
         </div>
 
-        {/* Row 4: Reference fields */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           <div className="space-y-2">
             <Label className="font-display text-xs uppercase tracking-wider">ECR</Label>
@@ -201,7 +187,6 @@ export default function NewSample() {
           </div>
         </div>
 
-        {/* Actions */}
         <div className="flex gap-3 pt-4 border-t border-border">
           <Button type="submit" className="gap-2">
             <Save className="w-4 h-4" /> Save Sample

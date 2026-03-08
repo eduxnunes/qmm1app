@@ -1,14 +1,15 @@
 import { useMemo, useState } from 'react';
 import { getSamples, deleteSample } from '@/lib/store';
+import { getSettings } from '@/lib/settings';
 import { StatusBadge } from '@/components/StatusBadge';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { AUDIT_TYPES, STATUS_OPTIONS } from '@/lib/types';
 import { Search, Trash2, Filter } from 'lucide-react';
 import { toast } from 'sonner';
 
 export default function SamplesList() {
+  const settings = getSettings();
   const [refresh, setRefresh] = useState(0);
   const samples = useMemo(() => getSamples(), [refresh]);
   const [search, setSearch] = useState('');
@@ -42,7 +43,6 @@ export default function SamplesList() {
         <p className="text-muted-foreground mt-1">{filtered.length} of {samples.length} samples</p>
       </div>
 
-      {/* Filters */}
       <div className="card-elevated">
         <div className="flex items-center gap-2 mb-4">
           <Filter className="w-4 h-4 text-muted-foreground" />
@@ -51,31 +51,25 @@ export default function SamplesList() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-            <Input
-              placeholder="Search ID, description, TTNR…"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="pl-9"
-            />
+            <Input placeholder="Search ID, description, TTNR…" value={search} onChange={(e) => setSearch(e.target.value)} className="pl-9" />
           </div>
           <Select value={typeFilter} onValueChange={setTypeFilter}>
             <SelectTrigger><SelectValue placeholder="All types" /></SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All Types</SelectItem>
-              {AUDIT_TYPES.map((t) => <SelectItem key={t} value={t}>{t}</SelectItem>)}
+              {settings.auditTypes.map((t) => <SelectItem key={t} value={t}>{t}</SelectItem>)}
             </SelectContent>
           </Select>
           <Select value={statusFilter} onValueChange={setStatusFilter}>
             <SelectTrigger><SelectValue placeholder="All statuses" /></SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All Statuses</SelectItem>
-              {STATUS_OPTIONS.map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}
+              {settings.statusOptions.map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}
             </SelectContent>
           </Select>
         </div>
       </div>
 
-      {/* Table */}
       <div className="card-elevated overflow-x-auto">
         <table className="w-full text-sm">
           <thead>
@@ -87,9 +81,7 @@ export default function SamplesList() {
           </thead>
           <tbody>
             {filtered.length === 0 ? (
-              <tr>
-                <td colSpan={9} className="py-12 text-center text-muted-foreground">No samples found</td>
-              </tr>
+              <tr><td colSpan={9} className="py-12 text-center text-muted-foreground">No samples found</td></tr>
             ) : (
               filtered.map((s) => (
                 <tr key={s.id} className="border-b border-border/50 hover:bg-muted/50 transition-colors">
