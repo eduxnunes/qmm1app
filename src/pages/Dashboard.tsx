@@ -154,6 +154,49 @@ export default function Dashboard() {
         </div>
       </div>
 
+      {/* Decision Time KPI */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div className="card-elevated">
+          <div className="flex items-center gap-2 mb-2">
+            <Timer className="w-4 h-4 text-primary" />
+            <p className="text-sm text-muted-foreground font-medium">Avg. Decision Time</p>
+          </div>
+          <div className="flex items-end gap-2">
+            <span className="text-4xl font-display font-bold text-primary">
+              {decisionTimeStats.avg !== null ? decisionTimeStats.avg : '—'}
+            </span>
+            {decisionTimeStats.avg !== null && (
+              <span className="text-sm text-muted-foreground mb-1">days</span>
+            )}
+          </div>
+          {decisionTimeStats.count > 0 && (
+            <p className="text-xs text-muted-foreground mt-2">
+              Based on {decisionTimeStats.count} sample{decisionTimeStats.count !== 1 ? 's' : ''} · Min: {decisionTimeStats.min}d · Max: {decisionTimeStats.max}d
+            </p>
+          )}
+        </div>
+        <div className="card-elevated">
+          <div className="flex items-center gap-2 mb-2">
+            <Clock className="w-4 h-4 text-warning" />
+            <p className="text-sm text-muted-foreground font-medium">Awaiting Decision</p>
+          </div>
+          <span className="text-4xl font-display font-bold text-warning">{awaitingDecision.length}</span>
+          <p className="text-xs text-muted-foreground mt-2">
+            samples without a decision date
+          </p>
+        </div>
+        <div className="card-elevated">
+          <div className="flex items-center gap-2 mb-2">
+            <XCircle className="w-4 h-4 text-destructive" />
+            <p className="text-sm text-muted-foreground font-medium">Overdue</p>
+          </div>
+          <span className="text-4xl font-display font-bold text-destructive">{overdueCount}</span>
+          <p className="text-xs text-muted-foreground mt-2">
+            past due date without decision
+          </p>
+        </div>
+      </div>
+
       {/* Charts row 1: Target vs Actual + Status Pie */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="card-elevated lg:col-span-2">
