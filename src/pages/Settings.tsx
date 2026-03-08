@@ -180,6 +180,20 @@ export default function Settings() {
     toast.info('Disconnected from config file');
   };
 
+  // Folder handlers
+  const handlePickFolder = async () => {
+    const result = await pickRootFolder();
+    if (result) {
+      setRootFolder(result.name); setFolderOk(true);
+      toast.success(`Root folder set to "${result.name}"`);
+    }
+  };
+
+  const handleDisconnectFolder = () => {
+    disconnectRootFolder(); setRootFolder(null); setFolderOk(false);
+    toast.info('Disconnected from root folder');
+  };
+
   const tabs = Object.keys(SETTING_LABELS) as DropdownKey[];
 
   return (
