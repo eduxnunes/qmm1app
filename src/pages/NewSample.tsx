@@ -5,6 +5,7 @@ import { AuditSample } from '@/lib/types';
 import { getSettings } from '@/lib/settings';
 import { useAuth } from '@/contexts/AuthContext';
 import { isFolderConnected, createSampleFolders } from '@/lib/folderManager';
+import { MultiTtnrInput } from '@/components/MultiTtnrInput';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
