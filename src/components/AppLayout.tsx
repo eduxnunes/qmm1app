@@ -181,7 +181,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                 </div>
               ) : null}
 
-              {isFileSystemSupported() ? (
+              {isFileSystemSupported() && (
                 <>
                   {connected ? (
                     <>
@@ -203,16 +203,15 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                     </>
                   )}
                 </>
-              ) : (
-                <>
-                  <button onClick={() => fileInputRef.current?.click()} className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-sidebar-accent/50 transition-colors w-full">
-                    <Upload className="w-4 h-4" /> Import Excel
-                  </button>
-                  <button onClick={handleExport} className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-sidebar-accent/50 transition-colors w-full">
-                    <Download className="w-4 h-4" /> Export Excel
-                  </button>
-                </>
               )}
+
+              {/* Always show import/export as fallback */}
+              <button onClick={() => fileInputRef.current?.click()} className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-sidebar-accent/50 transition-colors w-full">
+                <Upload className="w-4 h-4" /> Import Excel
+              </button>
+              <button onClick={handleExport} className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-sidebar-accent/50 transition-colors w-full">
+                <Download className="w-4 h-4" /> Export Excel
+              </button>
 
               <input ref={fileInputRef} type="file" accept=".xlsx,.xls" onChange={handleImport} className="hidden" />
             </div>
