@@ -11,6 +11,7 @@ import SamplesList from "@/pages/SamplesList";
 import Targets from "@/pages/Targets";
 import Settings from "@/pages/Settings";
 import UserManagement from "@/pages/UserManagement";
+import Links from "@/pages/Links";
 import Login from "@/pages/Login";
 import NotFound from "./pages/NotFound";
 import { PagePermission } from "@/lib/auth";
@@ -35,6 +36,7 @@ function AppRoutes() {
         <Route path="/new-sample" element={<ProtectedRoute permission="new_sample"><NewSample /></ProtectedRoute>} />
         <Route path="/samples" element={<ProtectedRoute permission="samples"><SamplesList /></ProtectedRoute>} />
         <Route path="/targets" element={<ProtectedRoute permission="targets"><Targets /></ProtectedRoute>} />
+        <Route path="/links" element={<ProtectedRoute permission="links"><Links /></ProtectedRoute>} />
         <Route path="/settings" element={<ProtectedRoute permission="settings"><Settings /></ProtectedRoute>} />
         <Route path="/users" element={<ProtectedRoute permission="users"><UserManagement /></ProtectedRoute>} />
         <Route path="*" element={<NotFound />} />
