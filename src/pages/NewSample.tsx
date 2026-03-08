@@ -73,7 +73,18 @@ export default function NewSample() {
       user: user?.username || 'admin',
     };
     saveSample(sample);
-    toast.success(`Sample ${id} created successfully`);
+
+    // Create folder structure if root folder is connected
+    if (isFolderConnected()) {
+      const created = await createSampleFolders(id, sample.ttnr);
+      if (created) {
+        toast.success(`Sample ${id} created — folder structure created`);
+      } else {
+        toast.success(`Sample ${id} created (folder creation failed)`);
+      }
+    } else {
+      toast.success(`Sample ${id} created successfully`);
+    }
     navigate('/samples');
   };
 
