@@ -4,6 +4,7 @@ import { getSamples, saveSample, deleteSample } from '@/lib/store';
 import { AuditSample } from '@/lib/types';
 import { getSettings } from '@/lib/settings';
 import { useAuth } from '@/contexts/AuthContext';
+import { MultiTtnrInput } from '@/components/MultiTtnrInput';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -109,8 +110,8 @@ export default function EditSample() {
             </Select>
           </div>
           <div className="space-y-2">
-            <Label className="font-display text-xs uppercase tracking-wider">TTNR</Label>
-            <Input value={form.ttnr} onChange={(e) => update('ttnr', e.target.value)} />
+            <Label className="font-display text-xs uppercase tracking-wider">TTNR(s)</Label>
+            <MultiTtnrInput value={form.ttnr} onChange={(v) => update('ttnr', v)} />
           </div>
           <div className="space-y-2">
             <Label className="font-display text-xs uppercase tracking-wider">Description</Label>
