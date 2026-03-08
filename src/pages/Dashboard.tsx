@@ -43,6 +43,56 @@ export default function Dashboard() {
     return new Date(s.dueDate).getTime() < Date.now();
   }).length;
 
+  // Decision time trend by month
+  const decisionTimeTrend = useMemo(() => {
+    const months: Record<string, { days: number[]; month: string }> = {};
+    samples.forEach((s) => {
+      if (s.date && s.decisionDate) {
+        const start = new Date(s.date).getTime();
+        const end = new Date(s.decisionDate).getTime();
+        if (!isNaN(start) && !isNaN(end) && end >= start) {
+          const days = Math.round((end - start) / (1000 * 60 * 60 * 24));
+          const key = `${s.year}-${String(s.month).padStart(2, '0')}`;
+          if (!months[key]) months[key] = { days: [], month: key };
+          months[key].days.push(days);
+        }
+      }
+    });
+    return Object.values(months)
+      .sort((a, b) => a.month.localeCompare(b.month))
+      .map((m) => ({
+        month: m.month,
+        avg: Math.round(m.days.reduce((a, b) => a + b, 0) / m.days.length),
+        min: Math.min(...m.days),
+        max: Math.max(...m.days),
+        count: m.days.length,
+      }));
+  }, [samples]);
+
+  // Decision time distribution (histogram buckets)
+  const decisionTimeDistribution = useMemo(() => {
+    const buckets = [
+      { label: '0 days', min: 0, max: 0, count: 0 },
+      { label: '1-7 days', min: 1, max: 7, count: 0 },
+      { label: '8-14 days', min: 8, max: 14, count: 0 },
+      { label: '15-30 days', min: 15, max: 30, count: 0 },
+      { label: '31-60 days', min: 31, max: 60, count: 0 },
+      { label: '60+ days', min: 61, max: Infinity, count: 0 },
+    ];
+    samples.forEach((s) => {
+      if (s.date && s.decisionDate) {
+        const start = new Date(s.date).getTime();
+        const end = new Date(s.decisionDate).getTime();
+        if (!isNaN(start) && !isNaN(end) && end >= start) {
+          const days = Math.round((end - start) / (1000 * 60 * 60 * 24));
+          const bucket = buckets.find((b) => days >= b.min && days <= b.max);
+          if (bucket) bucket.count++;
+        }
+      }
+    });
+    return buckets;
+  }, [samples]);
+
   const stats = [
     { label: 'Total Samples', value: totalSamples, icon: ClipboardCheck, color: 'text-primary' },
     { label: 'Approved (OK)', value: okCount, icon: CheckCircle2, color: 'text-success' },
