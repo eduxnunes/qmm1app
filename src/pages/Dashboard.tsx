@@ -133,6 +133,7 @@ export default function Dashboard() {
         total: vsSamples.length,
         ok: vsSamples.filter((s) => s.status === 'OK').length,
         nok: vsSamples.filter((s) => s.status === 'NOK').length,
+        underAnalysis: vsSamples.filter((s) => s.status === 'Under Analysis').length,
       };
     });
   }, [samples]);
