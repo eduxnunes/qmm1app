@@ -13,8 +13,9 @@ export default function Targets() {
   const [newType, setNewType] = useState('');
   const [newTarget, setNewTarget] = useState('');
 
+  const settings = getSettings();
   const usedTypes = useMemo(() => targets.map((t) => t.auditType), [targets]);
-  const availableTypes = AUDIT_TYPES.filter((t) => !usedTypes.includes(t));
+  const availableTypes = settings.auditTypes.filter((t) => !usedTypes.includes(t));
 
   const handleSave = () => {
     saveTargets(targets);
