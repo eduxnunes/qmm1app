@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 import { getSamples, getTargets } from '@/lib/store';
 import { ClipboardCheck, CheckCircle2, XCircle, Clock, TrendingUp, BarChart3, PieChart as PieIcon, Activity, Timer } from 'lucide-react';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell, PieChart, Pie, Legend } from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell, PieChart, Pie, Legend, LineChart, Line } from 'recharts';
 
 export default function Dashboard() {
   const samples = useMemo(() => getSamples(), []);
