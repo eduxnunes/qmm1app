@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import { getSamples, getTargets } from '@/lib/store';
-import { ClipboardCheck, CheckCircle2, XCircle, Clock, TrendingUp, BarChart3, PieChart as PieIcon, Activity } from 'lucide-react';
+import { ClipboardCheck, CheckCircle2, XCircle, Clock, TrendingUp, BarChart3, PieChart as PieIcon, Activity, Timer } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell, PieChart, Pie, Legend } from 'recharts';
 
 export default function Dashboard() {
