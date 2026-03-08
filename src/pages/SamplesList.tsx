@@ -3,11 +3,12 @@ import { useNavigate } from 'react-router-dom';
 import { getSamples, deleteSample } from '@/lib/store';
 import { getSettings } from '@/lib/settings';
 import { getLinks, resolveLink } from '@/lib/links';
+import { isFolderConnected, getSampleFolderHandle, listSampleSubfolders } from '@/lib/folderManager';
 import { StatusBadge } from '@/components/StatusBadge';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Search, Trash2, Filter, ExternalLink } from 'lucide-react';
+import { Search, Trash2, Filter, ExternalLink, FolderOpen } from 'lucide-react';
 import { toast } from 'sonner';
 
 export default function SamplesList() {
@@ -37,6 +38,21 @@ export default function SamplesList() {
       deleteSample(id);
       setRefresh((r) => r + 1);
       toast.success(`Sample ${id} deleted`);
+    }
+  };
+
+  const handleOpenFolder = async (e: React.MouseEvent, sampleId: string) => {
+    e.stopPropagation();
+    if (!isFolderConnected()) {
+      toast.error('No root folder connected. Go to Settings to link one.');
+      return;
+    }
+    const handle = await getSampleFolderHandle(sampleId);
+    if (handle) {
+      const subfolders = await listSampleSubfolders(sampleId);
+      toast.success(`Folder "${sampleId}" exists${subfolders.length ? ` — contains: ${subfolders.join(', ')}` : ''}`);
+    } else {
+      toast.error(`Folder "${sampleId}" not found in root directory`);
     }
   };
 
@@ -127,9 +143,14 @@ export default function SamplesList() {
                       </div>
                     </td>
                     <td className="py-3 px-2">
-                      <Button variant="ghost" size="sm" onClick={() => handleDelete(s.id)} className="text-muted-foreground hover:text-destructive">
-                        <Trash2 className="w-4 h-4" />
-                      </Button>
+                      <div className="flex gap-1">
+                        <Button variant="ghost" size="sm" onClick={(e) => handleOpenFolder(e, s.id)} className="text-muted-foreground hover:text-primary" title="Open sample folder">
+                          <FolderOpen className="w-4 h-4" />
+                        </Button>
+                        <Button variant="ghost" size="sm" onClick={(e) => { e.stopPropagation(); handleDelete(s.id); }} className="text-muted-foreground hover:text-destructive">
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                      </div>
                     </td>
                   </tr>
                 );

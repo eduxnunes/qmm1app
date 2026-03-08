@@ -4,6 +4,7 @@ import { saveSample, getNextId } from '@/lib/store';
 import { AuditSample } from '@/lib/types';
 import { getSettings } from '@/lib/settings';
 import { useAuth } from '@/contexts/AuthContext';
+import { isFolderConnected, createSampleFolders } from '@/lib/folderManager';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -43,7 +44,7 @@ export default function NewSample() {
     setForm((prev) => ({ ...prev, [field]: value }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!form.auditType || !form.section) {
       toast.error('Please fill in Audit Type and Section');
@@ -72,7 +73,18 @@ export default function NewSample() {
       user: user?.username || 'admin',
     };
     saveSample(sample);
-    toast.success(`Sample ${id} created successfully`);
+
+    // Create folder structure if root folder is connected
+    if (isFolderConnected()) {
+      const created = await createSampleFolders(id, sample.ttnr);
+      if (created) {
+        toast.success(`Sample ${id} created — folder structure created`);
+      } else {
+        toast.success(`Sample ${id} created (folder creation failed)`);
+      }
+    } else {
+      toast.success(`Sample ${id} created successfully`);
+    }
     navigate('/samples');
   };
 
