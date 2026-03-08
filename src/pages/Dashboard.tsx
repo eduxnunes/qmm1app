@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import { getSamples, getTargets } from '@/lib/store';
-import { ClipboardCheck, CheckCircle2, XCircle, Clock, TrendingUp, BarChart3, PieChart as PieIcon, Activity } from 'lucide-react';
+import { ClipboardCheck, CheckCircle2, XCircle, Clock, TrendingUp, BarChart3, PieChart as PieIcon, Activity, Timer } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell, PieChart, Pie, Legend } from 'recharts';
 
 export default function Dashboard() {
@@ -16,6 +16,32 @@ export default function Dashboard() {
 
   const completionRate = totalSamples > 0 ? Math.round(((okCount + nokCount) / totalSamples) * 100) : 0;
   const approvalRate = (okCount + nokCount) > 0 ? Math.round((okCount / (okCount + nokCount)) * 100) : 0;
+
+  // Decision time KPI: days between sample date and decisionDate
+  const decisionTimeStats = useMemo(() => {
+    const times: number[] = [];
+    samples.forEach((s) => {
+      if (s.date && s.decisionDate) {
+        const start = new Date(s.date).getTime();
+        const end = new Date(s.decisionDate).getTime();
+        if (!isNaN(start) && !isNaN(end) && end >= start) {
+          times.push(Math.round((end - start) / (1000 * 60 * 60 * 24)));
+        }
+      }
+    });
+    if (times.length === 0) return { avg: null, min: null, max: null, count: 0 };
+    const avg = Math.round(times.reduce((a, b) => a + b, 0) / times.length);
+    return { avg, min: Math.min(...times), max: Math.max(...times), count: times.length };
+  }, [samples]);
+
+  // Samples still awaiting decision (have date but no decisionDate, and not cancelled)
+  const awaitingDecision = samples.filter(
+    (s) => s.date && !s.decisionDate && s.status !== 'Cancelled'
+  );
+  const overdueCount = awaitingDecision.filter((s) => {
+    if (!s.dueDate) return false;
+    return new Date(s.dueDate).getTime() < Date.now();
+  }).length;
 
   const stats = [
     { label: 'Total Samples', value: totalSamples, icon: ClipboardCheck, color: 'text-primary' },
@@ -125,6 +151,49 @@ export default function Dashboard() {
           <div className="mt-3 h-2 bg-muted rounded-full overflow-hidden">
             <div className="h-full bg-success rounded-full transition-all" style={{ width: `${approvalRate}%` }} />
           </div>
+        </div>
+      </div>
+
+      {/* Decision Time KPI */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div className="card-elevated">
+          <div className="flex items-center gap-2 mb-2">
+            <Timer className="w-4 h-4 text-primary" />
+            <p className="text-sm text-muted-foreground font-medium">Avg. Decision Time</p>
+          </div>
+          <div className="flex items-end gap-2">
+            <span className="text-4xl font-display font-bold text-primary">
+              {decisionTimeStats.avg !== null ? decisionTimeStats.avg : '—'}
+            </span>
+            {decisionTimeStats.avg !== null && (
+              <span className="text-sm text-muted-foreground mb-1">days</span>
+            )}
+          </div>
+          {decisionTimeStats.count > 0 && (
+            <p className="text-xs text-muted-foreground mt-2">
+              Based on {decisionTimeStats.count} sample{decisionTimeStats.count !== 1 ? 's' : ''} · Min: {decisionTimeStats.min}d · Max: {decisionTimeStats.max}d
+            </p>
+          )}
+        </div>
+        <div className="card-elevated">
+          <div className="flex items-center gap-2 mb-2">
+            <Clock className="w-4 h-4 text-warning" />
+            <p className="text-sm text-muted-foreground font-medium">Awaiting Decision</p>
+          </div>
+          <span className="text-4xl font-display font-bold text-warning">{awaitingDecision.length}</span>
+          <p className="text-xs text-muted-foreground mt-2">
+            samples without a decision date
+          </p>
+        </div>
+        <div className="card-elevated">
+          <div className="flex items-center gap-2 mb-2">
+            <XCircle className="w-4 h-4 text-destructive" />
+            <p className="text-sm text-muted-foreground font-medium">Overdue</p>
+          </div>
+          <span className="text-4xl font-display font-bold text-destructive">{overdueCount}</span>
+          <p className="text-xs text-muted-foreground mt-2">
+            past due date without decision
+          </p>
         </div>
       </div>
 
