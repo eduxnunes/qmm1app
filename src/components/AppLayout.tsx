@@ -1,5 +1,5 @@
 import { Link, useLocation } from 'react-router-dom';
-import { LayoutDashboard, PlusCircle, List, Target, ClipboardCheck, Settings, Users, LogOut } from 'lucide-react';
+import { LayoutDashboard, PlusCircle, List, Target, ClipboardCheck, Settings, Users, LogOut, Link2 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { PagePermission } from '@/lib/auth';
@@ -9,6 +9,7 @@ const NAV_ITEMS: { to: string; label: string; icon: React.ElementType; permissio
   { to: '/new-sample', label: 'New Sample', icon: PlusCircle, permission: 'new_sample' },
   { to: '/samples', label: 'Samples', icon: List, permission: 'samples' },
   { to: '/targets', label: 'Targets', icon: Target, permission: 'targets' },
+  { to: '/links', label: 'Links', icon: Link2, permission: 'links' },
   { to: '/settings', label: 'Settings', icon: Settings, permission: 'settings' },
   { to: '/users', label: 'Users', icon: Users, permission: 'users' },
 ];

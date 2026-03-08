@@ -1,12 +1,13 @@
 export type UserRole = 'admin' | 'user';
 
-export type PagePermission = 'dashboard' | 'new_sample' | 'samples' | 'targets' | 'settings' | 'users';
+export type PagePermission = 'dashboard' | 'new_sample' | 'samples' | 'targets' | 'settings' | 'users' | 'links';
 
 export const ALL_PAGES: { key: PagePermission; label: string; path: string }[] = [
   { key: 'dashboard', label: 'Dashboard', path: '/' },
   { key: 'new_sample', label: 'New Sample', path: '/new-sample' },
   { key: 'samples', label: 'Samples', path: '/samples' },
   { key: 'targets', label: 'Targets', path: '/targets' },
+  { key: 'links', label: 'Links', path: '/links' },
   { key: 'settings', label: 'Settings', path: '/settings' },
   { key: 'users', label: 'User Management', path: '/users' },
 ];
