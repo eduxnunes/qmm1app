@@ -24,6 +24,18 @@ export default function Settings() {
   const [linkedFile, setLinkedFile] = useState<string | null>(getLinkedFileName());
   const [connected, setConnected] = useState(isAutoSaveActive());
 
+  // Auto-restore file handle from IndexedDB on mount
+  useEffect(() => {
+    if (!connected && getLinkedFileName()) {
+      restoreFileHandle().then((ok) => {
+        if (ok) {
+          setConnected(true);
+          setLinkedFile(getLinkedFileName());
+        }
+      });
+    }
+  }, []);
+
   // Auto-save to Excel on localStorage changes
   useEffect(() => {
     if (!connected) return;
