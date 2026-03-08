@@ -1,6 +1,6 @@
 import { useState, useRef, useCallback, useEffect } from 'react';
 import { getSettings, saveSettings, AppSettings } from '@/lib/settings';
-import { pickExcelFile, pickSaveLocation, getLinkedFileName, isAutoSaveActive, disconnectFile, autoSaveToExcel, importFromLinkedFile, isFileSystemSupported, exportToExcel } from '@/lib/excel';
+import { pickExcelFile, pickSaveLocation, getLinkedFileName, isAutoSaveActive, disconnectFile, autoSaveToExcel, importFromLinkedFile, isFileSystemSupported, exportToExcel, restoreFileHandle } from '@/lib/excel';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
@@ -23,6 +23,18 @@ export default function Settings() {
   const [activeTab, setActiveTab] = useState<DropdownKey>('auditTypes');
   const [linkedFile, setLinkedFile] = useState<string | null>(getLinkedFileName());
   const [connected, setConnected] = useState(isAutoSaveActive());
+
+  // Auto-restore file handle from IndexedDB on mount
+  useEffect(() => {
+    if (!connected && getLinkedFileName()) {
+      restoreFileHandle().then((ok) => {
+        if (ok) {
+          setConnected(true);
+          setLinkedFile(getLinkedFileName());
+        }
+      });
+    }
+  }, []);
 
   // Auto-save to Excel on localStorage changes
   useEffect(() => {
@@ -137,34 +149,40 @@ export default function Settings() {
           </div>
         ) : (
           <div className="space-y-3">
-            <p className="text-sm text-muted-foreground">
-              Connect an Excel file so all changes are saved automatically. You need to select the file once each session (browser security).
-            </p>
-            {isFileSystemSupported() ? (
-              <div className="flex gap-2">
-                <Button onClick={handleLinkFile} className="gap-2">
-                  <HardDrive className="w-4 h-4" /> Open Existing Excel
-                </Button>
-                <Button variant="outline" onClick={handleNewFile} className="gap-2">
-                  <FileSpreadsheet className="w-4 h-4" /> Create New Excel
-                </Button>
-              </div>
-            ) : (
+            {!isFileSystemSupported() ? (
               <div className="space-y-2">
                 <div className="p-3 rounded-lg bg-warning/10 border border-warning/20">
                   <p className="text-xs text-warning">
-                    Direct file access requires <strong>Chrome or Edge</strong>. In this browser, use manual download instead.
+                    Direct file access requires <strong>Chrome or Edge</strong> (not inside an iframe). Publish your app first, then use this feature.
                   </p>
                 </div>
                 <Button variant="outline" onClick={handleExportFallback} className="gap-2">
                   <Download className="w-4 h-4" /> Download Excel
                 </Button>
               </div>
-            )}
-            {linkedFile && (
-              <p className="text-xs text-muted-foreground">
-                Previously linked: <span className="font-display text-foreground/70">{linkedFile}</span> — re-select to reconnect
-              </p>
+            ) : (
+              <>
+                {linkedFile && (
+                  <div className="flex items-center gap-3 p-3 rounded-lg bg-muted/50 border border-border">
+                    <FileSpreadsheet className="w-5 h-5 text-muted-foreground shrink-0" />
+                    <div className="flex-1 min-w-0">
+                      <p className="font-display font-medium text-sm">{linkedFile}</p>
+                      <p className="text-xs text-muted-foreground">Previously linked — click below to reconnect (one-click)</p>
+                    </div>
+                  </div>
+                )}
+                <p className="text-sm text-muted-foreground">
+                  {linkedFile ? 'Re-select the file to reconnect (browser requires a one-time click per session).' : 'Connect an Excel file so all changes are saved automatically.'}
+                </p>
+                <div className="flex gap-2">
+                  <Button onClick={handleLinkFile} className="gap-2">
+                    <HardDrive className="w-4 h-4" /> {linkedFile ? 'Reconnect Excel' : 'Open Existing Excel'}
+                  </Button>
+                  <Button variant="outline" onClick={handleNewFile} className="gap-2">
+                    <FileSpreadsheet className="w-4 h-4" /> Create New Excel
+                  </Button>
+                </div>
+              </>
             )}
           </div>
         )}
