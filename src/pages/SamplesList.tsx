@@ -11,6 +11,7 @@ import { toast } from 'sonner';
 
 export default function SamplesList() {
   const settings = getSettings();
+  const links = useMemo(() => getLinks(), []);
   const [refresh, setRefresh] = useState(0);
   const samples = useMemo(() => getSamples(), [refresh]);
   const [search, setSearch] = useState('');
