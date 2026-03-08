@@ -41,6 +41,21 @@ export default function SamplesList() {
     }
   };
 
+  const handleOpenFolder = async (e: React.MouseEvent, sampleId: string) => {
+    e.stopPropagation();
+    if (!isFolderConnected()) {
+      toast.error('No root folder connected. Go to Settings to link one.');
+      return;
+    }
+    const handle = await getSampleFolderHandle(sampleId);
+    if (handle) {
+      const subfolders = await listSampleSubfolders(sampleId);
+      toast.success(`Folder "${sampleId}" exists${subfolders.length ? ` — contains: ${subfolders.join(', ')}` : ''}`);
+    } else {
+      toast.error(`Folder "${sampleId}" not found in root directory`);
+    }
+  };
+
   return (
     <div className="space-y-6 animate-fade-in">
       <div>
