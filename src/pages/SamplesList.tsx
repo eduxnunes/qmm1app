@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { getSamples, deleteSample } from '@/lib/store';
 import { getSettings } from '@/lib/settings';
 import { getLinks, resolveLink } from '@/lib/links';
@@ -10,6 +11,7 @@ import { Search, Trash2, Filter, ExternalLink } from 'lucide-react';
 import { toast } from 'sonner';
 
 export default function SamplesList() {
+  const navigate = useNavigate();
   const settings = getSettings();
   const links = useMemo(() => getLinks(), []);
   const [refresh, setRefresh] = useState(0);
@@ -98,8 +100,8 @@ export default function SamplesList() {
                   });
 
                 return (
-                  <tr key={s.id} className="border-b border-border/50 hover:bg-muted/50 transition-colors">
-                    <td className="py-3 px-2 font-display font-medium text-primary">{s.id}</td>
+                  <tr key={s.id} className="border-b border-border/50 hover:bg-muted/50 transition-colors cursor-pointer" onClick={() => navigate(`/samples/${s.id}`)}>
+                    <td className="py-3 px-2 font-display font-medium text-primary underline decoration-primary/30 hover:decoration-primary">{s.id}</td>
                     <td className="py-3 px-2 text-muted-foreground whitespace-nowrap">{s.date}</td>
                     <td className="py-3 px-2 max-w-[180px] truncate">{s.auditType}</td>
                     <td className="py-3 px-2 max-w-[180px] truncate">{s.section}</td>

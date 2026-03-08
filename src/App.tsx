@@ -8,6 +8,7 @@ import AppLayout from "@/components/AppLayout";
 import Dashboard from "@/pages/Dashboard";
 import NewSample from "@/pages/NewSample";
 import SamplesList from "@/pages/SamplesList";
+import EditSample from "@/pages/EditSample";
 import Targets from "@/pages/Targets";
 import Settings from "@/pages/Settings";
 import UserManagement from "@/pages/UserManagement";
@@ -26,7 +27,6 @@ function ProtectedRoute({ permission, children }: { permission: PagePermission; 
 
 function AppRoutes() {
   const { user } = useAuth();
-
   if (!user) return <Login />;
 
   return (
@@ -35,6 +35,7 @@ function AppRoutes() {
         <Route path="/" element={<ProtectedRoute permission="dashboard"><Dashboard /></ProtectedRoute>} />
         <Route path="/new-sample" element={<ProtectedRoute permission="new_sample"><NewSample /></ProtectedRoute>} />
         <Route path="/samples" element={<ProtectedRoute permission="samples"><SamplesList /></ProtectedRoute>} />
+        <Route path="/samples/:id" element={<ProtectedRoute permission="samples"><EditSample /></ProtectedRoute>} />
         <Route path="/targets" element={<ProtectedRoute permission="targets"><Targets /></ProtectedRoute>} />
         <Route path="/links" element={<ProtectedRoute permission="links"><Links /></ProtectedRoute>} />
         <Route path="/settings" element={<ProtectedRoute permission="settings"><Settings /></ProtectedRoute>} />
