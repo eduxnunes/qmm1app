@@ -1,19 +1,25 @@
 import { Link, useLocation } from 'react-router-dom';
-import { LayoutDashboard, PlusCircle, List, Target, ClipboardCheck } from 'lucide-react';
-
-const NAV_ITEMS = [
-  { to: '/', label: 'Dashboard', icon: LayoutDashboard },
-  { to: '/new-sample', label: 'New Sample', icon: PlusCircle },
-  { to: '/samples', label: 'Samples', icon: List },
-  { to: '/targets', label: 'Targets', icon: Target },
-];
+import { LayoutDashboard, PlusCircle, List, Target, ClipboardCheck, Settings, Users, LogOut } from 'lucide-react';
+import { useAuth } from '@/contexts/AuthContext';
+import { Button } from '@/components/ui/button';
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const location = useLocation();
+  const { user, logout, isAdmin } = useAuth();
+
+  const NAV_ITEMS = [
+    { to: '/', label: 'Dashboard', icon: LayoutDashboard },
+    { to: '/new-sample', label: 'New Sample', icon: PlusCircle },
+    { to: '/samples', label: 'Samples', icon: List },
+    { to: '/targets', label: 'Targets', icon: Target },
+    ...(isAdmin ? [
+      { to: '/settings', label: 'Settings', icon: Settings },
+      { to: '/users', label: 'Users', icon: Users },
+    ] : []),
+  ];
 
   return (
     <div className="min-h-screen flex bg-background">
-      {/* Sidebar */}
       <aside className="w-64 bg-sidebar border-r border-sidebar-border flex flex-col shrink-0">
         <div className="p-6 border-b border-sidebar-border">
           <div className="flex items-center gap-3">
@@ -45,12 +51,23 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
             );
           })}
         </nav>
-        <div className="p-4 border-t border-sidebar-border">
+        <div className="p-4 border-t border-sidebar-border space-y-3">
+          <div className="flex items-center gap-2">
+            <div className="w-7 h-7 rounded-full bg-sidebar-accent flex items-center justify-center text-xs font-display font-bold text-sidebar-primary">
+              {user?.fullName?.charAt(0) || 'U'}
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-xs font-medium text-sidebar-foreground truncate">{user?.fullName}</p>
+              <p className="text-[10px] text-sidebar-foreground/50 uppercase tracking-wider">{user?.role}</p>
+            </div>
+            <Button variant="ghost" size="sm" onClick={logout} className="text-sidebar-foreground/50 hover:text-sidebar-foreground p-1 h-auto">
+              <LogOut className="w-3.5 h-3.5" />
+            </Button>
+          </div>
           <p className="text-xs text-sidebar-foreground/40 font-display">v1.0 — Web Edition</p>
         </div>
       </aside>
 
-      {/* Main content */}
       <main className="flex-1 overflow-auto">
         <div className="max-w-7xl mx-auto p-6 lg:p-8">
           {children}
