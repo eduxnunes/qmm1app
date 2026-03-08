@@ -39,6 +39,10 @@ export default function Settings() {
   const [configFile, setConfigFile] = useState<string | null>(getConfigFileName());
   const [configOk, setConfigOk] = useState(isConfigConnected());
 
+  // Folder state
+  const [rootFolder, setRootFolder] = useState<string | null>(getRootFolderName());
+  const [folderOk, setFolderOk] = useState(isFolderConnected());
+
   // Auto-restore Excel handle
   useEffect(() => {
     if (!connected && getLinkedFileName()) {
@@ -53,6 +57,15 @@ export default function Settings() {
     if (!configOk && getConfigFileName()) {
       restoreConfigHandle().then((ok) => {
         if (ok) { setConfigOk(true); setConfigFile(getConfigFileName()); }
+      });
+    }
+  }, []);
+
+  // Auto-restore root folder handle
+  useEffect(() => {
+    if (!folderOk && getRootFolderName()) {
+      restoreRootFolder().then((ok) => {
+        if (ok) { setFolderOk(true); setRootFolder(getRootFolderName()); }
       });
     }
   }, []);
