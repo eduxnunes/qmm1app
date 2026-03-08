@@ -44,7 +44,7 @@ export default function NewSample() {
     setForm((prev) => ({ ...prev, [field]: value }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!form.auditType || !form.section) {
       toast.error('Please fill in Audit Type and Section');
