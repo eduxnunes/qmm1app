@@ -133,19 +133,21 @@ export default function Dashboard() {
         total: vsSamples.length,
         ok: vsSamples.filter((s) => s.status === 'OK').length,
         nok: vsSamples.filter((s) => s.status === 'NOK').length,
+        underAnalysis: vsSamples.filter((s) => s.status === 'Under Analysis').length,
       };
     });
   }, [samples]);
 
   // Monthly trend
   const monthlyData = useMemo(() => {
-    const months: Record<string, { month: string; total: number; ok: number; nok: number }> = {};
+    const months: Record<string, { month: string; total: number; ok: number; nok: number; underAnalysis: number }> = {};
     samples.forEach((s) => {
       const key = `${s.year}-${String(s.month).padStart(2, '0')}`;
-      if (!months[key]) months[key] = { month: key, total: 0, ok: 0, nok: 0 };
+      if (!months[key]) months[key] = { month: key, total: 0, ok: 0, nok: 0, underAnalysis: 0 };
       months[key].total++;
       if (s.status === 'OK') months[key].ok++;
       if (s.status === 'NOK') months[key].nok++;
+      if (s.status === 'Under Analysis') months[key].underAnalysis++;
     });
     return Object.values(months).sort((a, b) => a.month.localeCompare(b.month));
   }, [samples]);
@@ -369,8 +371,9 @@ export default function Dashboard() {
                 <XAxis dataKey="name" tick={{ fontSize: 12, fill: 'hsl(var(--muted-foreground))' }} />
                 <YAxis tick={{ fontSize: 12, fill: 'hsl(var(--muted-foreground))' }} />
                 <Tooltip contentStyle={{ background: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', borderRadius: '8px', fontSize: '13px' }} />
-                <Bar dataKey="ok" name="OK" fill="hsl(var(--success))" radius={[4, 4, 0, 0]} stackId="a" />
-                <Bar dataKey="nok" name="NOK" fill="hsl(var(--destructive))" radius={[4, 4, 0, 0]} stackId="a" />
+                <Bar dataKey="ok" name="OK" fill="hsl(var(--success))" radius={[0, 0, 0, 0]} stackId="a" />
+                <Bar dataKey="nok" name="NOK" fill="hsl(var(--destructive))" radius={[0, 0, 0, 0]} stackId="a" />
+                <Bar dataKey="underAnalysis" name="Under Analysis" fill="hsl(var(--warning))" radius={[4, 4, 0, 0]} stackId="a" />
                 <Legend wrapperStyle={{ fontSize: '12px' }} />
               </BarChart>
             </ResponsiveContainer>
@@ -393,6 +396,7 @@ export default function Dashboard() {
                   <Bar dataKey="total" name="Total" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
                   <Bar dataKey="ok" name="OK" fill="hsl(var(--success))" radius={[4, 4, 0, 0]} />
                   <Bar dataKey="nok" name="NOK" fill="hsl(var(--destructive))" radius={[4, 4, 0, 0]} />
+                  <Bar dataKey="underAnalysis" name="Under Analysis" fill="hsl(var(--warning))" radius={[4, 4, 0, 0]} />
                   <Legend wrapperStyle={{ fontSize: '12px' }} />
                 </BarChart>
               </ResponsiveContainer>
