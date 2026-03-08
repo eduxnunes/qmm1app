@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 import { getSamples, getTargets } from '@/lib/store';
 import { ClipboardCheck, CheckCircle2, XCircle, Clock, TrendingUp, BarChart3, PieChart as PieIcon, Activity, Timer } from 'lucide-react';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell, PieChart, Pie, Legend } from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell, PieChart, Pie, Legend, LineChart, Line } from 'recharts';
 
 export default function Dashboard() {
   const samples = useMemo(() => getSamples(), []);
@@ -42,6 +42,56 @@ export default function Dashboard() {
     if (!s.dueDate) return false;
     return new Date(s.dueDate).getTime() < Date.now();
   }).length;
+
+  // Decision time trend by month
+  const decisionTimeTrend = useMemo(() => {
+    const months: Record<string, { days: number[]; month: string }> = {};
+    samples.forEach((s) => {
+      if (s.date && s.decisionDate) {
+        const start = new Date(s.date).getTime();
+        const end = new Date(s.decisionDate).getTime();
+        if (!isNaN(start) && !isNaN(end) && end >= start) {
+          const days = Math.round((end - start) / (1000 * 60 * 60 * 24));
+          const key = `${s.year}-${String(s.month).padStart(2, '0')}`;
+          if (!months[key]) months[key] = { days: [], month: key };
+          months[key].days.push(days);
+        }
+      }
+    });
+    return Object.values(months)
+      .sort((a, b) => a.month.localeCompare(b.month))
+      .map((m) => ({
+        month: m.month,
+        avg: Math.round(m.days.reduce((a, b) => a + b, 0) / m.days.length),
+        min: Math.min(...m.days),
+        max: Math.max(...m.days),
+        count: m.days.length,
+      }));
+  }, [samples]);
+
+  // Decision time distribution (histogram buckets)
+  const decisionTimeDistribution = useMemo(() => {
+    const buckets = [
+      { label: '0 days', min: 0, max: 0, count: 0 },
+      { label: '1-7 days', min: 1, max: 7, count: 0 },
+      { label: '8-14 days', min: 8, max: 14, count: 0 },
+      { label: '15-30 days', min: 15, max: 30, count: 0 },
+      { label: '31-60 days', min: 31, max: 60, count: 0 },
+      { label: '60+ days', min: 61, max: Infinity, count: 0 },
+    ];
+    samples.forEach((s) => {
+      if (s.date && s.decisionDate) {
+        const start = new Date(s.date).getTime();
+        const end = new Date(s.decisionDate).getTime();
+        if (!isNaN(start) && !isNaN(end) && end >= start) {
+          const days = Math.round((end - start) / (1000 * 60 * 60 * 24));
+          const bucket = buckets.find((b) => days >= b.min && days <= b.max);
+          if (bucket) bucket.count++;
+        }
+      }
+    });
+    return buckets;
+  }, [samples]);
 
   const stats = [
     { label: 'Total Samples', value: totalSamples, icon: ClipboardCheck, color: 'text-primary' },
@@ -194,6 +244,58 @@ export default function Dashboard() {
           <p className="text-xs text-muted-foreground mt-2">
             past due date without decision
           </p>
+        </div>
+      </div>
+
+      {/* Decision Time Charts */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="card-elevated">
+          <div className="flex items-center gap-2 mb-6">
+            <Timer className="w-5 h-5 text-primary" />
+            <h2 className="font-display font-semibold text-lg">Decision Time Trend</h2>
+          </div>
+          <div className="h-64">
+            {decisionTimeTrend.length > 0 ? (
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart data={decisionTimeTrend} margin={{ top: 5, right: 20, left: 0, bottom: 5 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                  <XAxis dataKey="month" tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }} />
+                  <YAxis tick={{ fontSize: 12, fill: 'hsl(var(--muted-foreground))' }} label={{ value: 'Days', angle: -90, position: 'insideLeft', style: { fontSize: 11, fill: 'hsl(var(--muted-foreground))' } }} />
+                  <Tooltip
+                    contentStyle={{ background: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', borderRadius: '8px', fontSize: '13px' }}
+                    formatter={(value: number, name: string) => [`${value} days`, name === 'avg' ? 'Average' : name === 'min' ? 'Min' : name === 'max' ? 'Max' : name]}
+                  />
+                  <Line type="monotone" dataKey="avg" name="Average" stroke="hsl(var(--primary))" strokeWidth={2} dot={{ r: 4 }} />
+                  <Line type="monotone" dataKey="min" name="Min" stroke="hsl(var(--success))" strokeWidth={1} strokeDasharray="4 4" dot={{ r: 2 }} />
+                  <Line type="monotone" dataKey="max" name="Max" stroke="hsl(var(--destructive))" strokeWidth={1} strokeDasharray="4 4" dot={{ r: 2 }} />
+                  <Legend wrapperStyle={{ fontSize: '12px' }} />
+                </LineChart>
+              </ResponsiveContainer>
+            ) : (
+              <div className="flex items-center justify-center h-full text-muted-foreground text-sm">No decision data yet</div>
+            )}
+          </div>
+        </div>
+        <div className="card-elevated">
+          <div className="flex items-center gap-2 mb-6">
+            <BarChart3 className="w-5 h-5 text-primary" />
+            <h2 className="font-display font-semibold text-lg">Decision Time Distribution</h2>
+          </div>
+          <div className="h-64">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={decisionTimeDistribution} margin={{ top: 5, right: 20, left: 0, bottom: 5 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                <XAxis dataKey="label" tick={{ fontSize: 10, fill: 'hsl(var(--muted-foreground))' }} />
+                <YAxis tick={{ fontSize: 12, fill: 'hsl(var(--muted-foreground))' }} allowDecimals={false} />
+                <Tooltip contentStyle={{ background: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', borderRadius: '8px', fontSize: '13px' }} />
+                <Bar dataKey="count" name="Samples" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]}>
+                  {decisionTimeDistribution.map((_, i) => (
+                    <Cell key={i} fill={`hsl(var(--primary) / ${0.4 + i * 0.12})`} />
+                  ))}
+                </Bar>
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
         </div>
       </div>
 
