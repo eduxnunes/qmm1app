@@ -67,6 +67,12 @@ export function logout(): void {
 }
 
 export function getSession(): SessionUser | null {
+  // Force login on every new browser session by using sessionStorage flag
+  const sessionActive = sessionStorage.getItem('isir_session_active');
+  if (!sessionActive) {
+    localStorage.removeItem(SESSION_KEY);
+    return null;
+  }
   const data = localStorage.getItem(SESSION_KEY);
   if (!data) return null;
   const session = JSON.parse(data);
@@ -76,3 +82,5 @@ export function getSession(): SessionUser | null {
   }
   return session;
 }
+
+
