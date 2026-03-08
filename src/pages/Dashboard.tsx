@@ -140,13 +140,14 @@ export default function Dashboard() {
 
   // Monthly trend
   const monthlyData = useMemo(() => {
-    const months: Record<string, { month: string; total: number; ok: number; nok: number }> = {};
+    const months: Record<string, { month: string; total: number; ok: number; nok: number; underAnalysis: number }> = {};
     samples.forEach((s) => {
       const key = `${s.year}-${String(s.month).padStart(2, '0')}`;
-      if (!months[key]) months[key] = { month: key, total: 0, ok: 0, nok: 0 };
+      if (!months[key]) months[key] = { month: key, total: 0, ok: 0, nok: 0, underAnalysis: 0 };
       months[key].total++;
       if (s.status === 'OK') months[key].ok++;
       if (s.status === 'NOK') months[key].nok++;
+      if (s.status === 'Under Analysis') months[key].underAnalysis++;
     });
     return Object.values(months).sort((a, b) => a.month.localeCompare(b.month));
   }, [samples]);
