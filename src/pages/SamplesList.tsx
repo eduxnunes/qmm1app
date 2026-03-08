@@ -1,11 +1,12 @@
 import { useMemo, useState } from 'react';
 import { getSamples, deleteSample } from '@/lib/store';
 import { getSettings } from '@/lib/settings';
+import { getLinks, resolveLink } from '@/lib/links';
 import { StatusBadge } from '@/components/StatusBadge';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Search, Trash2, Filter } from 'lucide-react';
+import { Search, Trash2, Filter, ExternalLink } from 'lucide-react';
 import { toast } from 'sonner';
 
 export default function SamplesList() {
