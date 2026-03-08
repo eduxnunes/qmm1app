@@ -143,9 +143,14 @@ export default function SamplesList() {
                       </div>
                     </td>
                     <td className="py-3 px-2">
-                      <Button variant="ghost" size="sm" onClick={() => handleDelete(s.id)} className="text-muted-foreground hover:text-destructive">
-                        <Trash2 className="w-4 h-4" />
-                      </Button>
+                      <div className="flex gap-1">
+                        <Button variant="ghost" size="sm" onClick={(e) => handleOpenFolder(e, s.id)} className="text-muted-foreground hover:text-primary" title="Open sample folder">
+                          <FolderOpen className="w-4 h-4" />
+                        </Button>
+                        <Button variant="ghost" size="sm" onClick={(e) => { e.stopPropagation(); handleDelete(s.id); }} className="text-muted-foreground hover:text-destructive">
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                      </div>
                     </td>
                   </tr>
                 );
