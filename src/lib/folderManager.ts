@@ -113,8 +113,9 @@ export async function createSampleFolders(sampleId: string, ttnr: string): Promi
   if (!rootDirHandle) return false;
   try {
     const sampleDir = await rootDirHandle.getDirectoryHandle(sampleId, { create: true });
-    if (ttnr.trim()) {
-      await sampleDir.getDirectoryHandle(ttnr.trim(), { create: true });
+    const ttnrs = ttnr.split(',').map(t => t.trim()).filter(Boolean);
+    for (const t of ttnrs) {
+      await sampleDir.getDirectoryHandle(t, { create: true });
     }
     return true;
   } catch (e) {

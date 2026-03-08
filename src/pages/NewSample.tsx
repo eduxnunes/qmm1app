@@ -148,8 +148,8 @@ export default function NewSample() {
             </Select>
           </div>
           <div className="space-y-2">
-            <Label className="font-display text-xs uppercase tracking-wider">TTNR</Label>
-            <Input value={form.ttnr} onChange={(e) => update('ttnr', e.target.value)} placeholder="e.g. 8738215975" />
+            <Label className="font-display text-xs uppercase tracking-wider">TTNR(s)</Label>
+            <MultiTtnrInput value={form.ttnr || ''} onChange={(v) => update('ttnr', v)} />
           </div>
           <div className="space-y-2">
             <Label className="font-display text-xs uppercase tracking-wider">Description</Label>

@@ -110,8 +110,8 @@ export default function EditSample() {
             </Select>
           </div>
           <div className="space-y-2">
-            <Label className="font-display text-xs uppercase tracking-wider">TTNR</Label>
-            <Input value={form.ttnr} onChange={(e) => update('ttnr', e.target.value)} />
+            <Label className="font-display text-xs uppercase tracking-wider">TTNR(s)</Label>
+            <MultiTtnrInput value={form.ttnr} onChange={(v) => update('ttnr', v)} />
           </div>
           <div className="space-y-2">
             <Label className="font-display text-xs uppercase tracking-wider">Description</Label>
