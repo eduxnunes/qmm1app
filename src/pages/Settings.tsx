@@ -269,6 +269,62 @@ export default function Settings() {
         )}
       </div>
 
+      {/* Sample Folders Root Directory */}
+      <div className="card-elevated">
+        <div className="flex items-center gap-2 mb-4">
+          <FolderOpen className="w-5 h-5 text-primary" />
+          <h2 className="font-display font-semibold text-lg">Sample Folders Root Directory</h2>
+        </div>
+
+        {folderOk && rootFolder ? (
+          <div className="space-y-3">
+            <div className="flex items-center gap-3 p-3 rounded-lg bg-success/10 border border-success/20">
+              <FolderOpen className="w-5 h-5 text-success shrink-0" />
+              <div className="flex-1 min-w-0">
+                <p className="font-display font-medium text-sm text-success">{rootFolder}</p>
+                <p className="text-xs text-success/70">New samples will auto-create folders here: {rootFolder}/{'{sampleId}'}/{'{TTNR}'}/</p>
+              </div>
+            </div>
+            <div className="flex gap-2">
+              <Button variant="outline" size="sm" onClick={handlePickFolder} className="gap-2">
+                <FolderOpen className="w-3.5 h-3.5" /> Change Folder
+              </Button>
+              <Button variant="outline" size="sm" onClick={handleDisconnectFolder} className="gap-2 text-destructive hover:text-destructive">
+                <Unplug className="w-3.5 h-3.5" /> Disconnect
+              </Button>
+            </div>
+          </div>
+        ) : (
+          <div className="space-y-3">
+            {!isFolderFSSupported() ? (
+              <div className="p-3 rounded-lg bg-warning/10 border border-warning/20">
+                <p className="text-xs text-warning">
+                  Directory access requires <strong>Chrome or Edge</strong> (not inside an iframe). Publish your app first.
+                </p>
+              </div>
+            ) : (
+              <>
+                {rootFolder && (
+                  <div className="flex items-center gap-3 p-3 rounded-lg bg-muted/50 border border-border">
+                    <FolderOpen className="w-5 h-5 text-muted-foreground shrink-0" />
+                    <div className="flex-1 min-w-0">
+                      <p className="font-display font-medium text-sm">{rootFolder}</p>
+                      <p className="text-xs text-muted-foreground">Previously linked — click below to reconnect</p>
+                    </div>
+                  </div>
+                )}
+                <p className="text-sm text-muted-foreground">
+                  Select the root folder where sample subfolders will be created automatically.
+                </p>
+                <Button onClick={handlePickFolder} className="gap-2">
+                  <FolderOpen className="w-4 h-4" /> {rootFolder ? 'Reconnect Folder' : 'Select Root Folder'}
+                </Button>
+              </>
+            )}
+          </div>
+        )}
+      </div>
+
       {/* Excel File Connection */}
       <div className="card-elevated">
         <div className="flex items-center gap-2 mb-4">
