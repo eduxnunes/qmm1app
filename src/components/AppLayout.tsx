@@ -2,21 +2,22 @@ import { Link, useLocation } from 'react-router-dom';
 import { LayoutDashboard, PlusCircle, List, Target, ClipboardCheck, Settings, Users, LogOut } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
+import { PagePermission } from '@/lib/auth';
+
+const NAV_ITEMS: { to: string; label: string; icon: React.ElementType; permission: PagePermission }[] = [
+  { to: '/', label: 'Dashboard', icon: LayoutDashboard, permission: 'dashboard' },
+  { to: '/new-sample', label: 'New Sample', icon: PlusCircle, permission: 'new_sample' },
+  { to: '/samples', label: 'Samples', icon: List, permission: 'samples' },
+  { to: '/targets', label: 'Targets', icon: Target, permission: 'targets' },
+  { to: '/settings', label: 'Settings', icon: Settings, permission: 'settings' },
+  { to: '/users', label: 'Users', icon: Users, permission: 'users' },
+];
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const location = useLocation();
-  const { user, logout, isAdmin } = useAuth();
+  const { user, logout, hasPermission } = useAuth();
 
-  const NAV_ITEMS = [
-    { to: '/', label: 'Dashboard', icon: LayoutDashboard },
-    { to: '/new-sample', label: 'New Sample', icon: PlusCircle },
-    { to: '/samples', label: 'Samples', icon: List },
-    { to: '/targets', label: 'Targets', icon: Target },
-    ...(isAdmin ? [
-      { to: '/settings', label: 'Settings', icon: Settings },
-      { to: '/users', label: 'Users', icon: Users },
-    ] : []),
-  ];
+  const visibleNav = NAV_ITEMS.filter((item) => hasPermission(item.permission));
 
   return (
     <div className="min-h-screen flex bg-background">
@@ -33,7 +34,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
           </div>
         </div>
         <nav className="flex-1 p-3 space-y-1">
-          {NAV_ITEMS.map(({ to, label, icon: Icon }) => {
+          {visibleNav.map(({ to, label, icon: Icon }) => {
             const active = location.pathname === to;
             return (
               <Link
