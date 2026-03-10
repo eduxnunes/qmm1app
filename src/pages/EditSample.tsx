@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { getSamples, saveSample, deleteSample } from '@/lib/store';
+import { autoSaveToExcel, isAutoSaveActive } from '@/lib/excel';
 import { AuditSample } from '@/lib/types';
 import { getSettings } from '@/lib/settings';
 import { useAuth } from '@/contexts/AuthContext';
@@ -37,19 +38,25 @@ export default function EditSample() {
     setForm((prev) => prev ? { ...prev, [field]: value } : prev);
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!form.auditType || !form.section) {
       toast.error('Audit Type and Section are required');
       return;
     }
     saveSample(form);
+    if (isAutoSaveActive()) {
+      await autoSaveToExcel();
+    }
     toast.success(`Sample ${form.id} updated`);
     navigate('/samples');
   };
 
-  const handleDelete = () => {
+  const handleDelete = async () => {
     if (window.confirm(`Delete sample ${form.id}?`)) {
       deleteSample(form.id);
+      if (isAutoSaveActive()) {
+        await autoSaveToExcel();
+      }
       toast.success(`Sample ${form.id} deleted`);
       navigate('/samples');
     }

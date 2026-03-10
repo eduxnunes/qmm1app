@@ -90,7 +90,7 @@ export default function Settings() {
     const originalSetItem = localStorage.setItem.bind(localStorage);
     localStorage.setItem = (key: string, value: string) => {
       originalSetItem(key, value);
-      if (key === 'isir_settings' || key === 'isir_targets' || key === 'isir_links') {
+      if (key === 'isir_settings' || key === 'isir_targets' || key === 'isir_links' || key === 'isir_users') {
         clearTimeout((window as any).__configSaveTimer);
         (window as any).__configSaveTimer = setTimeout(() => { autoSaveConfig(); }, 500);
       }
@@ -156,6 +156,10 @@ export default function Settings() {
         saveSettings(data.settings);
         saveTargets(data.targets);
         saveLinks(data.links);
+        if (data.users && data.users.length > 0) {
+          const { saveUsers } = await import('@/lib/auth');
+          saveUsers(data.users);
+        }
         setSettings(data.settings);
         toast.success(`Loaded config from ${result.name}`);
       } else {

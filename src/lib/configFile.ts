@@ -1,12 +1,14 @@
 import { AppSettings } from './settings';
 import { AuditTarget } from './types';
 import { AppLink } from './links';
+import { AppUser } from './auth';
 
 // ── Config file structure ──────────────────────────────────────
 export interface ConfigFileData {
   settings: AppSettings;
   targets: AuditTarget[];
   links: AppLink[];
+  users?: AppUser[];
 }
 
 // ── File System Access API ─────────────────────────────────────
@@ -164,11 +166,13 @@ export async function autoSaveConfig(): Promise<void> {
   const { getSettings } = await import('./settings');
   const { getTargets } = await import('./store');
   const { getLinks } = await import('./links');
+  const { getUsers } = await import('./auth');
   
   const data: ConfigFileData = {
     settings: getSettings(),
     targets: getTargets(),
     links: getLinks(),
+    users: getUsers(),
   };
   await saveConfigToFile(data);
 }

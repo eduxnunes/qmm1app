@@ -49,8 +49,27 @@ export default function SamplesList() {
     }
     const handle = await getSampleFolderHandle(sampleId);
     if (handle) {
-      const subfolders = await listSampleSubfolders(sampleId);
-      toast.success(`Folder "${sampleId}" exists${subfolders.length ? ` — contains: ${subfolders.join(', ')}` : ''}`);
+      // Try to open the folder using the File System Access API
+      // We create a temporary file picker scoped to this directory to "open" it
+      try {
+        // Unfortunately, browsers don't support opening folders in the OS file explorer directly.
+        // The best we can do is list contents and let the user drag-drop or use the folder picker.
+        // However, we can use window.showDirectoryPicker with startIn to guide the user.
+        const subfolders = await listSampleSubfolders(sampleId);
+        // Attempt to use the experimental startIn option to open at the folder location
+        const dirHandle = await (window as any).showDirectoryPicker({
+          mode: 'read',
+          startIn: handle,
+        });
+        toast.success(`Opened folder "${dirHandle.name}"${subfolders.length ? ` — contains: ${subfolders.join(', ')}` : ''}`);
+      } catch (err: any) {
+        if (err?.name === 'AbortError') {
+          // User cancelled — that's fine, the OS picker already showed the folder
+          return;
+        }
+        const subfolders = await listSampleSubfolders(sampleId);
+        toast.success(`Folder "${sampleId}" exists${subfolders.length ? ` — contains: ${subfolders.join(', ')}` : ''}`);
+      }
     } else {
       toast.error(`Folder "${sampleId}" not found in root directory`);
     }

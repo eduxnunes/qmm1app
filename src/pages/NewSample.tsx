@@ -5,6 +5,7 @@ import { AuditSample } from '@/lib/types';
 import { getSettings } from '@/lib/settings';
 import { useAuth } from '@/contexts/AuthContext';
 import { isFolderConnected, createSampleFolders } from '@/lib/folderManager';
+import { autoSaveToExcel, isAutoSaveActive } from '@/lib/excel';
 import { MultiTtnrInput } from '@/components/MultiTtnrInput';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -74,6 +75,11 @@ export default function NewSample() {
       user: user?.username || 'admin',
     };
     saveSample(sample);
+
+    // Auto-save to Excel if connected
+    if (isAutoSaveActive()) {
+      await autoSaveToExcel();
+    }
 
     // Create folder structure if root folder is connected
     if (isFolderConnected()) {
