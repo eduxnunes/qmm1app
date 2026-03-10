@@ -76,6 +76,11 @@ export default function NewSample() {
     };
     saveSample(sample);
 
+    // Auto-save to Excel if connected
+    if (isAutoSaveActive()) {
+      await autoSaveToExcel();
+    }
+
     // Create folder structure if root folder is connected
     if (isFolderConnected()) {
       const created = await createSampleFolders(id, sample.ttnr);

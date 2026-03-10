@@ -166,11 +166,13 @@ export async function autoSaveConfig(): Promise<void> {
   const { getSettings } = await import('./settings');
   const { getTargets } = await import('./store');
   const { getLinks } = await import('./links');
+  const { getUsers } = await import('./auth');
   
   const data: ConfigFileData = {
     settings: getSettings(),
     targets: getTargets(),
     links: getLinks(),
+    users: getUsers(),
   };
   await saveConfigToFile(data);
 }

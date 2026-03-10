@@ -1,9 +1,6 @@
 import * as XLSX from '@e965/xlsx';
 import { AuditSample } from './types';
-import { AuditTarget } from './types';
-import { AppUser, UserRole, PagePermission, DEFAULT_USER_PERMISSIONS, ADMIN_PERMISSIONS } from './auth';
-import { getSamples, saveSample, getTargets, saveTargets } from './store';
-import { getUsers, saveUsers } from './auth';
+import { getSamples, saveSample } from './store';
 
 // ── File System Access API handle ──────────────────────────────
 let fileHandle: FileSystemFileHandle | null = null;

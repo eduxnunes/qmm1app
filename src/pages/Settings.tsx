@@ -90,7 +90,7 @@ export default function Settings() {
     const originalSetItem = localStorage.setItem.bind(localStorage);
     localStorage.setItem = (key: string, value: string) => {
       originalSetItem(key, value);
-      if (key === 'isir_settings' || key === 'isir_targets' || key === 'isir_links') {
+      if (key === 'isir_settings' || key === 'isir_targets' || key === 'isir_links' || key === 'isir_users') {
         clearTimeout((window as any).__configSaveTimer);
         (window as any).__configSaveTimer = setTimeout(() => { autoSaveConfig(); }, 500);
       }
