@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { getSamples, saveSample, deleteSample } from '@/lib/store';
+import { autoSaveToExcel, isAutoSaveActive } from '@/lib/excel';
 import { AuditSample } from '@/lib/types';
 import { getSettings } from '@/lib/settings';
 import { useAuth } from '@/contexts/AuthContext';
