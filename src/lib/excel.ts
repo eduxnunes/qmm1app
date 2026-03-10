@@ -184,8 +184,8 @@ export function importFromExcel(file: File): Promise<ImportResult> {
         const wb = XLSX.read(data, { type: 'array' });
         const result: ImportResult = { samples: 0, targets: 0, users: 0, errors: [] };
 
-        // Page 2: Samples
-        const samplesSheet = wb.Sheets[wb.SheetNames[1]];
+        // Samples sheet (first sheet, or named "Samples")
+        const samplesSheet = wb.Sheets['Samples'] || wb.Sheets[wb.SheetNames[0]];
         if (samplesSheet) {
           const rows = XLSX.utils.sheet_to_json<Record<string, unknown>>(samplesSheet, { defval: '' });
           rows.forEach((row, i) => {
@@ -219,52 +219,6 @@ export function importFromExcel(file: File): Promise<ImportResult> {
               result.errors.push(`Row ${i + 2}: failed to parse sample`);
             }
           });
-        }
-
-        // Page 3: Targets
-        const targetsSheet = wb.Sheets[wb.SheetNames[2]];
-        if (targetsSheet) {
-          const rows = XLSX.utils.sheet_to_json<Record<string, unknown>>(targetsSheet, { defval: '' });
-          const targets: AuditTarget[] = [];
-          rows.forEach((row) => {
-            const auditType = String(row['Audit Type'] || '').trim();
-            const target = Number(row['Target']) || 0;
-            if (auditType) {
-              targets.push({ auditType, target });
-              result.targets++;
-            }
-          });
-          if (targets.length > 0) saveTargets(targets);
-        }
-
-        // Page 4: Users
-        const usersSheet = wb.Sheets[wb.SheetNames[3]];
-        if (usersSheet) {
-          const rows = XLSX.utils.sheet_to_json<Record<string, unknown>>(usersSheet, { defval: '', header: ['username', 'passwordHash', 'role', 'permissions'] });
-          const existingUsers = getUsers();
-          rows.slice(1).forEach((row) => {
-            const username = String(row['username'] || '').trim();
-            if (!username) return;
-            if (existingUsers.some((u) => u.username === username)) return;
-            const role = String(row['role'] || 'user') as UserRole;
-            const permsStr = String(row['permissions'] || '');
-            const permMap: Record<string, PagePermission> = {
-              new_sample: 'new_sample', edit_sample: 'samples', settings: 'settings',
-              graphics: 'dashboard', user_mgmt: 'users', edit_target: 'targets',
-            };
-            const permissions: PagePermission[] = role === 'admin'
-              ? ADMIN_PERMISSIONS
-              : permsStr.split(',').map((p) => permMap[p.trim()]).filter(Boolean) as PagePermission[];
-            existingUsers.push({
-              username,
-              password: username.toLowerCase(),
-              role: role === 'admin' ? 'admin' : 'user',
-              fullName: username,
-              permissions: permissions.length > 0 ? permissions : DEFAULT_USER_PERMISSIONS,
-            });
-            result.users++;
-          });
-          if (result.users > 0) saveUsers(existingUsers);
         }
 
         resolve(result);
