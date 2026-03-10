@@ -1,12 +1,14 @@
 import { AppSettings } from './settings';
 import { AuditTarget } from './types';
 import { AppLink } from './links';
+import { AppUser } from './auth';
 
 // ── Config file structure ──────────────────────────────────────
 export interface ConfigFileData {
   settings: AppSettings;
   targets: AuditTarget[];
   links: AppLink[];
+  users?: AppUser[];
 }
 
 // ── File System Access API ─────────────────────────────────────
