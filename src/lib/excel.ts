@@ -283,28 +283,7 @@ export function importFromExcel(file: File): Promise<ImportResult> {
 function buildWorkbook(): XLSX.WorkBook {
   const wb = XLSX.utils.book_new();
 
-  // Page 1: Config
-  const settingsData = localStorage.getItem('isir_settings');
-  if (settingsData) {
-    const settings = JSON.parse(settingsData);
-    const maxLen = Math.max(
-      settings.auditTypes?.length || 0, settings.sections?.length || 0,
-      settings.statusOptions?.length || 0, settings.valueStreams?.length || 0,
-    );
-    const configRows: Record<string, string>[] = [];
-    for (let i = 0; i < maxLen; i++) {
-      configRows.push({
-        'Audit Type': settings.auditTypes?.[i] || '',
-        'Section': settings.sections?.[i] || '',
-        'OK/NOK': settings.statusOptions?.[i] || '',
-        'Value Stream': settings.valueStreams?.[i] || '',
-      });
-    }
-    const ws1 = XLSX.utils.json_to_sheet(configRows);
-    XLSX.utils.book_append_sheet(wb, ws1, 'Config');
-  }
-
-  // Page 2: Samples
+  // Only Samples sheet — Config, Targets, and Users are stored in the JSON config file
   const samples = getSamples();
   const sampleRows = samples.map((s) => ({
     'ID': s.id, 'Day': s.day, 'Month': s.month, 'Year': s.year,
@@ -315,23 +294,6 @@ function buildWorkbook(): XLSX.WorkBook {
     'Problem Solving': s.problemSolving, 'Date': s.date, 'User': s.user,
   }));
   XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(sampleRows), 'Samples');
-
-  // Page 3: Targets
-  const targets = getTargets();
-  XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(targets.map((t) => ({
-    'Audit Type': t.auditType, 'Target': t.target,
-  }))), 'Targets');
-
-  // Page 4: Users
-  const users = getUsers();
-  const permMap: Record<PagePermission, string> = {
-    new_sample: 'new_sample', samples: 'edit_sample', settings: 'settings',
-    dashboard: 'graphics', users: 'user_mgmt', targets: 'edit_target', links: 'links',
-  };
-  XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(users.map((u) => ({
-    'Username': u.username, 'Password_Hash': '(local)', 'Role': u.role,
-    'Permissions': u.permissions.map((p) => permMap[p] || p).join(','),
-  }))), 'Users');
 
   return wb;
 }
