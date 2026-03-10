@@ -156,6 +156,10 @@ export default function Settings() {
         saveSettings(data.settings);
         saveTargets(data.targets);
         saveLinks(data.links);
+        if (data.users && data.users.length > 0) {
+          const { saveUsers } = await import('@/lib/auth');
+          saveUsers(data.users);
+        }
         setSettings(data.settings);
         toast.success(`Loaded config from ${result.name}`);
       } else {
